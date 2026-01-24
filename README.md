@@ -349,7 +349,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ### Security
 
-If you discover any security related issues, please email us at info@omniadigital.io instead of using the issue tracker.
+If you discover any security related issues, please email us at info@omnia.church instead of using the issue tracker.
 
 ## Credits
 

@@ -3,7 +3,7 @@
     "description": "Laravel Livewire calendar component",
     "keywords": [
         "omnia",
-        "omnia-digital",
+        "omnia-church-apps",
         "livewire-calendar"
     ],
     "homepage": "https://github.com/omnia-digital/livewire-calendar",
@@ -12,7 +12,7 @@
     "authors": [
         {
             "name": "Josh Torres",
-            "email": "josht@omniadigital.io",
+            "email": "info@omnia.church",
             "role": "Developer"
         },
         {
@@ -22,7 +22,7 @@
         },
         {
             "name": "Osei Quashie",
-            "email": "osei@omniadigital.io",
+            "email": "info@omnia.church",
             "role": "Developer"
         }
     ],
