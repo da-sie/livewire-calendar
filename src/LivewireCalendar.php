@@ -228,14 +228,21 @@ class LivewireCalendar extends Component
 
     public function getId()
     {
-        if (!empty($this->__id)) {
-            $id = $this->__id;
-        } else if (!empty($this->id)) {
-            $id = $this->id;
-        } else {
-            $id = 'livewire-calendar-' . uniqid();
+        // Livewire 3+ has getId() on base Component class
+        if (method_exists(parent::class, 'getId')) {
+            return parent::getId();
         }
-        return $id;
+
+        // Fallback for Livewire 2
+        if (!empty($this->__id)) {
+            return $this->__id;
+        }
+
+        if (!empty($this->id)) {
+            return $this->id;
+        }
+
+        return 'livewire-calendar-' . uniqid();
     }
 
     /**
