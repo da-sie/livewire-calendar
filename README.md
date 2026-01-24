@@ -17,6 +17,26 @@ You can install the package via composer:
 composer require omnia-digital/livewire-calendar
 ```
 
+## Compatibility
+
+This package supports a wide range of PHP, Laravel, and Livewire versions:
+
+| Package Version | PHP       | Laravel   | Livewire  |
+|----------------|-----------|-----------|-----------|
+| 4.1.x          | 7.4 - 8.4 | 6 - 12    | 2, 3, 4   |
+| 3.2.x          | 7.4 - 8.3 | 6 - 12    | 2, 3      |
+| 3.1.x          | 7.4 - 8.3 | 6 - 11    | 2, 3      |
+| 3.0.x          | 7.4 - 8.2 | 6 - 10    | 2, 3      |
+| 2.2.x          | 7.4 - 8.2 | 6 - 10    | 2         |
+
+**Recommended installation:**
+
+```bash
+composer require omnia-digital/livewire-calendar:^4.1
+```
+
+For upgrade guides, see [UPGRADE.md](UPGRADE.md).
+
 ## Requirements
 
 This package uses `livewire/livewire` (https://laravel-livewire.com/) under the hood.
