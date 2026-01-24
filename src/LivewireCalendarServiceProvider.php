@@ -26,7 +26,7 @@ class LivewireCalendarServiceProvider extends ServiceProvider
 
         Blade::directive('livewireCalendarScripts', function () {
             return <<<'HTML'
-            <script>
+            <script data-navigate-once>
                 function onLivewireCalendarEventDragStart(event, eventId) {
                     event.dataTransfer.setData('id', eventId);
                 }
@@ -36,7 +36,9 @@ class LivewireCalendarServiceProvider extends ServiceProvider
                     event.preventDefault();
 
                     let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className + ` ${dragAndDropClasses} `;
+                    if (element) {
+                        element.className = element.className + ` ${dragAndDropClasses} `;
+                    }
                 }
 
                 function onLivewireCalendarEventDragLeave(event, componentId, dateString, dragAndDropClasses) {
@@ -44,7 +46,9 @@ class LivewireCalendarServiceProvider extends ServiceProvider
                     event.preventDefault();
 
                     let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className.replace(dragAndDropClasses, '');
+                    if (element) {
+                        element.className = element.className.replace(dragAndDropClasses, '');
+                    }
                 }
 
                 function onLivewireCalendarEventDragOver(event) {
@@ -57,11 +61,17 @@ class LivewireCalendarServiceProvider extends ServiceProvider
                     event.preventDefault();
 
                     let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className.replace(dragAndDropClasses, '');
+                    if (element) {
+                        element.className = element.className.replace(dragAndDropClasses, '');
+                    }
 
                     const eventId = event.dataTransfer.getData('id');
 
-                    window.Livewire.find(componentId).call('onEventDropped', eventId, year, month, day);
+                    // Livewire 3/4 compatible - call method directly on $wire object
+                    const $wire = window.Livewire.find(componentId);
+                    if ($wire) {
+                        $wire.onEventDropped(eventId, year, month, day);
+                    }
                 }
             </script>
 HTML;

@@ -1,9 +1,19 @@
 
 <div
-    ondragenter="onLivewireCalendarEventDragEnter(event, '{{ $componentId }}', '{{ $day }}', '{{ $dragAndDropClasses }}');"
-    ondragleave="onLivewireCalendarEventDragLeave(event, '{{ $componentId }}', '{{ $day }}', '{{ $dragAndDropClasses }}');"
-    ondragover="onLivewireCalendarEventDragOver(event);"
-    ondrop="onLivewireCalendarEventDrop(event, '{{ $componentId }}', '{{ $day }}', {{ $day->year }}, {{ $day->month }}, {{ $day->day }}, '{{ $dragAndDropClasses }}');"
+    x-data="{ dragOver: false }"
+    x-on:dragenter.prevent="dragOver = true"
+    x-on:dragleave.prevent="dragOver = false"
+    x-on:dragover.prevent
+    x-on:drop.prevent="
+        dragOver = false;
+        $wire.onEventDropped(
+            $event.dataTransfer.getData('id'),
+            {{ $day->year }},
+            {{ $day->month }},
+            {{ $day->day }}
+        )
+    "
+    :class="{ '{{ $dragAndDropClasses }}': dragOver }"
     class="flex-1 h-40 lg:h-48 border border-gray-200 -mt-px -ml-px"
     style="min-width: 10rem;">
 
@@ -35,10 +45,11 @@
                 <div class="grid grid-cols-1 grid-flow-row gap-2">
                     @foreach($events as $event)
                         <div
-                            @if($dragAndDropEnabled)
+                            @if($dragAndDropEnabled && !($event['is_multiday'] ?? false))
                                 draggable="true"
+                                x-on:dragstart="$event.dataTransfer.setData('id', '{{ $event['id'] }}')"
                             @endif
-                            ondragstart="onLivewireCalendarEventDragStart(event, '{{ $event['id'] }}')">
+                        >
                             @include($eventView, [
                                 'event' => $event,
                             ])

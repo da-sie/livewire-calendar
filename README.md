@@ -130,6 +130,60 @@ public function events(): Collection
 }
 ```
 
+### Multi-Day Events
+
+Events can span multiple days using `start_date` and `end_date` instead of the legacy `date` field:
+
+```php
+public function events(): Collection
+{
+    return collect([
+        [
+            'id' => 1,
+            'title' => 'Conference',
+            'description' => 'Annual Tech Conference',
+            'start_date' => Carbon::parse('2024-03-15'),
+            'end_date' => Carbon::parse('2024-03-17'),
+        ],
+    ]);
+}
+```
+
+This event will appear on March 15, 16, and 17 with visual styling indicating it spans multiple days.
+
+#### Multi-Day Event with Times
+
+You can optionally include `start_time` and `end_time` for display purposes:
+
+```php
+[
+    'id' => 2,
+    'title' => 'Training Session',
+    'start_date' => Carbon::parse('2024-03-20'),
+    'end_date' => Carbon::parse('2024-03-22'),
+    'start_time' => '09:00',
+    'end_time' => '17:00',
+]
+```
+
+The start time will display on the first day, and end time on the last day.
+
+#### Event Metadata in Custom Views
+
+When customizing the event view, multi-day events include additional metadata:
+
+- `$event['is_multiday']` - Boolean, true if event spans multiple days
+- `$event['is_first_day']` - Boolean, true if this is the first day of the event
+- `$event['is_last_day']` - Boolean, true if this is the last day of the event
+- `$event['day_position']` - Integer, which day of the event (1-indexed)
+- `$event['total_days']` - Integer, total number of days the event spans
+
+**Note:** Multi-day events have drag and drop disabled by default.
+
+#### Backwards Compatibility
+
+Existing events using the `date` field will continue to work. The calendar automatically detects which format is being used. If both `date` and `start_date`/`end_date` are present, the new format takes precedence.
+
 Now, we can include our component in any view.
 
 Example
@@ -164,8 +218,9 @@ Example
 />
  ```
 
-You should include scripts with `@livewireCalendarScripts` to enable drag and drop which is turned on by default.
-You must include them after `@livewireScripts`
+**For Livewire 3+:** Drag and drop is now handled via Alpine.js (bundled with Livewire 3+), so `@livewireCalendarScripts` is optional. It's only needed if you've published and customized the views using the legacy inline event handlers.
+
+**For Livewire 2:** You must include scripts with `@livewireCalendarScripts` to enable drag and drop. Include them after `@livewireScripts`:
 
 ```blade
 @livewireScripts

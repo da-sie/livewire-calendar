@@ -207,8 +207,67 @@ class LivewireCalendar extends Component
     {
         return $events
             ->filter(function ($event) use ($day) {
-                return Carbon::parse($event['date'])->isSameDay($day);
+                return $this->eventOccursOnDay($event, $day);
+            })
+            ->map(function ($event) use ($day) {
+                return $this->enrichEventForDay($event, $day);
             });
+    }
+
+    /**
+     * Determine if an event occurs on a given day.
+     * Supports legacy 'date' field and new 'start_date'/'end_date' fields.
+     */
+    protected function eventOccursOnDay(array $event, Carbon $day): bool
+    {
+        // New multi-day format takes precedence
+        if (isset($event['start_date']) && isset($event['end_date'])) {
+            $startDate = Carbon::parse($event['start_date'])->startOfDay();
+            $endDate = Carbon::parse($event['end_date'])->startOfDay();
+            $checkDay = $day->copy()->startOfDay();
+
+            return $checkDay->between($startDate, $endDate);
+        }
+
+        // Fallback to legacy 'date' field
+        if (isset($event['date'])) {
+            return Carbon::parse($event['date'])->isSameDay($day);
+        }
+
+        return false;
+    }
+
+    /**
+     * Enrich event with day-specific metadata for view rendering.
+     * Adds position info (is_first_day, is_last_day, is_multiday, day_position).
+     */
+    protected function enrichEventForDay(array $event, Carbon $day): array
+    {
+        // Legacy single-day events - add minimal metadata
+        if (!isset($event['start_date']) || !isset($event['end_date'])) {
+            $event['is_multiday'] = false;
+            $event['is_first_day'] = true;
+            $event['is_last_day'] = true;
+            $event['day_position'] = 1;
+            $event['total_days'] = 1;
+
+            return $event;
+        }
+
+        $startDate = Carbon::parse($event['start_date'])->startOfDay();
+        $endDate = Carbon::parse($event['end_date'])->startOfDay();
+        $checkDay = $day->copy()->startOfDay();
+
+        $totalDays = $startDate->diffInDays($endDate) + 1;
+        $dayPosition = $startDate->diffInDays($checkDay) + 1;
+
+        $event['is_multiday'] = $totalDays > 1;
+        $event['is_first_day'] = $checkDay->isSameDay($startDate);
+        $event['is_last_day'] = $checkDay->isSameDay($endDate);
+        $event['day_position'] = $dayPosition;
+        $event['total_days'] = $totalDays;
+
+        return $event;
     }
 
     public function onDayClick($year, $month, $day)
