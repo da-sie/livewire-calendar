@@ -11,10 +11,10 @@
 
     <div class="flex">
         <div class="overflow-x-auto w-full">
-            <div class="inline-block min-w-full overflow-hidden">
+            <div class="inline-block min-w-full overflow-hidden" role="grid" aria-label="Calendar">
 
                 @if($viewMode !== 'day')
-                    <div class="w-full flex flex-row">
+                    <div class="w-full flex flex-row" role="row">
                         @foreach($grid->first() as $day)
                             @include($dayOfWeekView, ['day' => $day])
                         @endforeach
@@ -22,7 +22,7 @@
                 @endif
 
                 @foreach($grid as $week)
-                    <div class="w-full flex flex-row">
+                    <div class="w-full flex flex-row" role="row">
                         @foreach($week as $day)
                             @include($dayView, [
                                     'componentId' => $componentId,
@@ -42,4 +42,6 @@
     <div>
         @includeIf($afterCalendarView)
     </div>
+
+    <div aria-live="polite" class="sr-only"></div>
 </div>

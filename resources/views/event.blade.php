@@ -4,7 +4,15 @@
 @endphp
 <div
     @if($eventClickEnabled)
+        role="button"
+        tabindex="0"
         wire:click.stop="onEventClick('{{ $event['id']  }}')"
+        x-on:keydown.enter.stop="$wire.onEventClick('{{ $event['id'] }}')"
+        x-on:keydown.space.prevent.stop="$wire.onEventClick('{{ $event['id'] }}')"
+    @endif
+    aria-label="{{ $event['title'] }}"
+    @if($dragAndDropEnabled)
+        aria-grabbed="false"
     @endif
     class="{{ $isStart ? 'rounded-l-lg' : 'rounded-l-none -ml-px' }} {{ $isEnd ? 'rounded-r-lg' : 'rounded-r-none -mr-px' }} bg-white border py-2 px-3 shadow-md cursor-pointer">
 

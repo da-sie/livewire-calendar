@@ -1,16 +1,39 @@
 
 <div
+    role="gridcell"
+    aria-label="{{ $day->format('F j, Y') }}"
+    tabindex="0"
     @if($dragAndDropEnabled)
         x-data="livewireCalendarDay({
             componentId: '{{ $componentId }}',
             year: {{ $day->year }},
             month: {{ $day->month }},
-            day: {{ $day->day }}
+            day: {{ $day->day }},
+            dayClickEnabled: {{ $dayClickEnabled ? 'true' : 'false' }}
         })"
         x-on:dragenter.prevent="onDragEnter"
         x-on:dragleave="onDragLeave"
         x-on:dragover.prevent
         x-on:drop="onDrop"
+        x-on:keydown="onKeydown"
+    @endif
+    @if(!$dragAndDropEnabled)
+        x-data="{ onKeydown(e) {
+            if ((e.key === 'Enter' || e.key === ' ') && {{ $dayClickEnabled ? 'true' : 'false' }}) {
+                e.preventDefault();
+                $wire.onDayClick({{ $day->year }}, {{ $day->month }}, {{ $day->day }});
+            }
+            const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+            if (moves[e.key]) {
+                e.preventDefault();
+                const grid = e.currentTarget.closest('[role=grid]');
+                const cells = [...grid.querySelectorAll('[role=gridcell]')];
+                const idx = cells.indexOf(e.currentTarget);
+                const target = cells[idx + moves[e.key]];
+                if (target) target.focus();
+            }
+        } }"
+        x-on:keydown="onKeydown"
     @endif
     class="flex-1 {{ ($viewMode ?? 'month') === 'day' ? 'min-w-full h-auto min-h-[24rem]' : 'h-40 lg:h-48' }} border border-gray-200 -mt-px -ml-px"
     style="{{ ($viewMode ?? 'month') !== 'day' ? 'min-width: 10rem;' : '' }}">
