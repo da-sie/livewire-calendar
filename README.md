@@ -1,273 +1,294 @@
 # Livewire Calendar
 
-This package allows you to build a Livewire monthly calendar grid to show events for each day. Events can be loaded 
-from within the component and will be presented on each day depending on the date of the event.
+A Laravel Livewire calendar component with month, week, and day views. Supports multi-day events,
+drag-and-drop, keyboard navigation, and full accessibility (ARIA).
 
-## Preview
-
-![preview](https://github.com/asantibanez/livewire-calendar/raw/master/preview.gif)
-
-## Installation
-
-You can install the package via composer:
-
-```bash
-composer require asantibanez/livewire-calendar
-```
+> **Fork of [asantibanez/livewire-calendar](https://github.com/asantibanez/livewire-calendar)**, modernized for Livewire 4, Laravel 11-13, and PHP 8.2+.
 
 ## Requirements
 
-This package uses `livewire/livewire` (https://laravel-livewire.com/) under the hood.
+- PHP 8.2+
+- Laravel 11, 12, or 13
+- Livewire 4
+- TailwindCSS (for default styling)
 
-It also uses TailwindCSS (https://tailwindcss.com/) for base styling. 
+## Installation
 
-Please make sure you include both of this dependencies before using this component. 
+```bash
+composer require da-sie/livewire-calendar
+```
 
-## Usage
+## Quick Start
 
-In order to use this component, you must create a new Livewire component that extends from 
-`LivewireCalendar`
+Create a Livewire component that extends `LivewireCalendar`:
 
-You can use `make:livewire` to create a new component. For example.
-``` bash
+```bash
 php artisan make:livewire AppointmentsCalendar
 ```
 
-In the `AppointmentsCalendar` class, instead of extending from the base `Component` Livewire class, 
-extend from `LivewireCalendar`. Also, remove the `render` method. 
-You'll have a class similar to this snippet.
- 
-``` php
+```php
+use Asantibanez\LivewireCalendar\LivewireCalendar;
+use Illuminate\Support\Collection;
+use Carbon\Carbon;
+
 class AppointmentsCalendar extends LivewireCalendar
 {
-    //
+    public function events(): Collection
+    {
+        return collect([
+            [
+                'id' => 1,
+                'title' => 'Breakfast',
+                'description' => 'Pancakes!',
+                'date' => Carbon::today(),
+            ],
+            [
+                'id' => 2,
+                'title' => 'Meeting',
+                'description' => 'Work stuff',
+                'date' => Carbon::tomorrow(),
+            ],
+        ]);
+    }
 }
 ```
 
-In this class, you must override the following method
+Include in a Blade view:
+
+```blade
+<livewire:appointments-calendar />
+```
+
+Add the drag-and-drop scripts after Livewire's scripts:
+
+```blade
+@livewireCalendarScripts
+```
+
+## Event Format
+
+Events are keyed arrays with these fields:
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `id` | mixed | yes | Unique identifier |
+| `title` | string | yes | Display title |
+| `description` | string | no | Description text |
+| `date` | Carbon/string | yes | Start date |
+| `date_end` | Carbon/string | no | End date (inclusive) for multi-day events |
+
+### Multi-Day Events
+
+Add `date_end` to make an event span multiple days:
 
 ```php
-public function events() : Collection
-{
-    // must return a Laravel collection
-}
+[
+    'id' => 1,
+    'title' => 'Conference',
+    'description' => 'Annual tech conference',
+    'date' => '2026-04-08',
+    'date_end' => '2026-04-10',
+]
 ```
 
-In the `events()` method, return a collection holding the events that will be displayed on 
-the calendar. Events must be keyed arrays holding at least the following keys: 
-`id`, `title`, `description`, `date` (`date` must be a `Carbon\Carbon` instance).
+Multi-day events display across all days in their range. The title shows on the start day;
+continuation days show a compact indicator. Events without `date_end` behave as single-day events.
 
-Example
-
-```php
-public function events() : Collection
-{
-    return collect([
-        [
-            'id' => 1,
-            'title' => 'Breakfast',
-            'description' => 'Pancakes! 🥞',
-            'date' => Carbon::today(),
-        ],
-        [
-            'id' => 2,
-            'title' => 'Meeting with Pamela',
-            'description' => 'Work stuff',
-            'date' => Carbon::tomorrow(),
-        ],
-    ]);
-}
-```
-
-The `date` value will be used to determine to what day the event belongs to. To
-load values in the `events()` method, you can use the following component properties
-to filter your events.
-- `startsAt`: starting date of month   
-- `endsAt`: ending date of month   
-- `gridStartsAt`: starting date of calendar grid. Can be a date from the previous month.   
-- `endingStartsAt`: ending date of calendar grid. Can be a date from the next month.   
-
-Example
+**Loading multi-day events:** If your events can start before the visible grid, use an overlap query:
 
 ```php
 public function events(): Collection
 {
-    return Model::query()
-        ->whereDate('scheduled_at', '>=', $this->gridStartsAt)
-        ->whereDate('scheduled_at', '<=', $this->gridEndsAt)
+    return Event::query()
+        ->whereDate('date', '<=', $this->gridEndsAt)
+        ->where(function ($q) {
+            $q->whereDate('date_end', '>=', $this->gridStartsAt)
+              ->orWhereNull('date_end');
+        })
         ->get()
-        ->map(function (Model $model) {
-            return [
-                'id' => $model->id,
-                'title' => $model->title,
-                'description' => $model->notes,
-                'date' => $model->scheduled_at,
-            ];
-        });
+        ->map(fn (Event $e) => [
+            'id' => $e->id,
+            'title' => $e->title,
+            'description' => $e->notes,
+            'date' => $e->date,
+            'date_end' => $e->date_end,
+        ]);
 }
 ```
 
-Now, we can include our component in any view. 
+## View Modes
 
-Example
+The calendar supports three view modes: `month` (default), `week`, and `day`.
 
 ```blade
-<livewire:appointments-calendar/>
-``` 
+<livewire:appointments-calendar view-mode="week" />
+```
 
-This will render a calendar grid.
+### Switching Views
 
-![example](https://github.com/asantibanez/livewire-calendar/raw/master/example.png)
+Call `setViewMode()` from your component or a custom view:
 
-By default, the component will render the current month. If you want to change the
-starting month, you can set the `year` and `month` props.
+```php
+$this->setViewMode('week');  // 'month', 'week', 'day'
+```
 
- Example
- 
- ```blade
+Or from Blade via `wire:click`:
+
+```blade
+<button wire:click="setViewMode('month')">Month</button>
+<button wire:click="setViewMode('week')">Week</button>
+<button wire:click="setViewMode('day')">Day</button>
+```
+
+### Navigation
+
+| Method | Description |
+|--------|-------------|
+| `goToPreviousMonth` | Navigate to previous month |
+| `goToNextMonth` | Navigate to next month |
+| `goToCurrentMonth` | Navigate to current month |
+| `goToPreviousWeek` | Navigate to previous week |
+| `goToNextWeek` | Navigate to next week |
+| `goToPreviousDay` | Navigate to previous day |
+| `goToNextDay` | Navigate to next day |
+
+Use `before-calendar-view` or `after-calendar-view` to add navigation controls.
+
+### Filtering Properties
+
+Use these properties in `events()` to filter your data:
+
+| Property | Description |
+|----------|-------------|
+| `$this->startsAt` | Start of the visible period |
+| `$this->endsAt` | End of the visible period |
+| `$this->gridStartsAt` | Start of the grid (may include adjacent days) |
+| `$this->gridEndsAt` | End of the grid |
+
+In day mode, `gridStartsAt` and `gridEndsAt` match the single visible day.
+In week mode, they match the visible week.
+
+## Customization
+
+### Component Props
+
+```blade
 <livewire:appointments-calendar
-    year="2019"
-    month="12"
-/>
- ``` 
-
-You should include scripts with `@livewireCalendarScripts` to enable drag and drop which is turned on by default.
-You must include them after `@livewireScripts`
-
-```blade
-@livewireScripts
-@livewireCalendarScripts
-``` 
-
-The component has 3 public methods that can help navigate forward and backward through months: 
-- `goToPreviousMonth`
-- `goToNextMonth` 
-- `goToCurrentMonth`
-
-You can use these methods on extra views using `before-calendar-view` or `after-calendar-view` explained below.  
-
-### Advanced usage
-
-### Ui customization
-
-You can customize the behavior of the component with the following properties when rendering on a view:
-
-- `week-starts-at` which can be a number from 0 to 6 according to Carbon days of week to indicate
-with which day of week the calendar should render first. 
-                          
-- `event-view` which can be any `blade.php` view that will be used to render the event card. 
-This view will be injected with a `$event` variable holding its data. 
-
-- `before-calendar-view` and `after-calendar-view` can be any `blade.php` views that can be rendered before or after
-the calendar itself. These can be used to add extra features to your component using Livewire.
-
-- `drag-and-drop-classes` can be any css class used to render the hover effect when dragging an event over each day
-in the calendar. By default, this value is `border border-blue-400 border-4` 
-
-- `day-of-week-view` which can be any `blade.php` view that will be used to render the header of each calendar day.
-This view will be injected the `day` property which is a Carbon instance of the day of the week.
-
-```blade
-<livewire:appointments-grid
-    week-starts-at="0, 1, 2, 3, 4, 5 or 6. 0 stands for Sunday"
-    event-view="path/to/view/starting/from/views/folder"
-    day-of-week-view="path/to/view/starting/from/views/folder"
-    before-calendar-view="path/to/view/starting/from/views/folder"
-    after-calendar-view="path/to/view/starting/from/views/folder"
-    drag-and-drop-classes="css classes"
+    year="2026"
+    month="4"
+    view-mode="month"
+    week-starts-at="1"
+    event-view="custom.event"
+    day-view="custom.day"
+    day-of-week-view="custom.day-of-week"
+    calendar-view="custom.calendar"
+    before-calendar-view="custom.header"
+    after-calendar-view="custom.footer"
+    drag-and-drop-classes="border border-blue-400 border-4"
+    :day-click-enabled="true"
+    :event-click-enabled="true"
+    :drag-and-drop-enabled="true"
+    poll-millis="5000"
+    poll-action="refreshEvents"
 />
 ```
 
-### Advanced ui customization
+### Publishing Views
 
-(This options should be used using blade views based on the component default views)
-
-To use these options, it is recommended to publish the base blade views used by the component and extend their 
-behavior and styling to your liking. To do this, run `php artisan vendor:publish` and export the `livewire-calendar` tag.
-
-- `calendar-view` which can be any `blade.php` view that renders the whole component. It's advised to override this
-view with an altered copy of the base `calendar-view` eg adding a view next to the component.
-
-- `day-view` which can be any `blade.php` view that will be used to render each day of the month. This view will be 
-injected with the following properties: `componentId` (id of the Livewire component)
-, `day` (day of the month as a Carbon instance)
-, `dayInMonth` (if the day is part of the month or not)
-, `isToday` (if the day is today's date)
-, `events` (events collection that correspond to this day)
-
-Example
-
-```blade
-<livewire:appointments-grid
-    calendar-view="path/to/view/starting/from/views/folder"
-    day-view="path/to/view/starting/from/views/folder"
-/>
+```bash
+php artisan vendor:publish --tag=livewire-calendar
 ```
 
-### Interaction customization
+Published views receive these variables:
 
-You can override the following methods to add interactivity to your component
+**`day` view:** `$componentId`, `$day`, `$dayInMonth`, `$isToday`, `$events`, `$viewMode`
+
+**`event` view:** `$event`, `$isStart`, `$isEnd`, `$eventClickEnabled`, `$dragAndDropEnabled`
+
+### Publishing Assets
+
+To use the JS file directly (instead of `@livewireCalendarScripts`):
+
+```bash
+php artisan vendor:publish --tag=livewire-calendar-assets
+```
+
+Then include manually:
+
+```html
+<script src="{{ asset('vendor/livewire-calendar/calendar.js') }}" defer></script>
+```
+
+## Interactions
+
+Override these methods in your component:
 
 ```php
 public function onDayClick($year, $month, $day)
 {
-    // This event is triggered when a day is clicked
-    // You will be given the $year, $month and $day for that day
+    // Triggered when a day cell is clicked
 }
 
 public function onEventClick($eventId)
 {
-    // This event is triggered when an event card is clicked
-    // You will be given the event id that was clicked 
+    // Triggered when an event is clicked
 }
 
 public function onEventDropped($eventId, $year, $month, $day)
 {
-    // This event will fire when an event is dragged and dropped into another calendar day
-    // You will get the event id, year, month and day where it was dragged to
+    // Triggered when an event is dragged and dropped to another day
+    // $year/$month/$day = target day
 }
 ```
 
-### Automatic polling
+### Multi-Day Drag Source
 
-You can also add automatic polling if needed using `pollMillis` parameters. You can combo with `pollAction` in
-order to call a specific action in your component at the desired polling interval.
+For multi-day events, you may need to know which day segment was dragged.
+Listen for the `calendar-event-dropped` Livewire event:
 
-### Disabling interactions
+```php
+use Livewire\Attributes\On;
 
-By default click and drag/drop events are enabled. To disable them you can use the following parameters when
-rendering the component
-```blade
-<livewire:appointments-grid
-    :day-click-enabled="false"
-    :event-click-enabled="false"
-    :drag-and-drop-enabled="false"
-/>
+#[On('calendar-event-dropped')]
+public function handleEventDrop($eventId, $targetYear, $targetMonth, $targetDay, $sourceYear, $sourceMonth, $sourceDay)
+{
+    $event = Event::find($eventId);
+
+    // Calculate how many days the event was moved
+    $source = Carbon::create($sourceYear, $sourceMonth, $sourceDay);
+    $target = Carbon::create($targetYear, $targetMonth, $targetDay);
+    $diff = $source->diffInDays($target, false);
+
+    // Shift both start and end dates by the same offset
+    $event->update([
+        'date' => Carbon::parse($event->date)->addDays($diff),
+        'date_end' => $event->date_end ? Carbon::parse($event->date_end)->addDays($diff) : null,
+    ]);
+}
 ```
 
-### Testing
+## Accessibility
 
-``` bash
+The calendar includes full ARIA support:
+
+- `role="grid"` on the calendar, `role="gridcell"` on day cells, `role="columnheader"` on day-of-week headers
+- `aria-label` on days (e.g. "April 8, 2026") and events
+- **Keyboard navigation:** Arrow keys move between day cells, Enter/Space triggers day click
+- **Event keyboard:** Enter/Space triggers event click when enabled
+- `aria-live="polite"` region for screen reader announcements
+- `role="button"` and `tabindex="0"` on clickable events only
+
+## Testing
+
+```bash
 composer test
 ```
 
-### Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-### Security
-
-If you discover any security related issues, please email santibanez.andres@gmail.com instead of using the issue tracker.
-
 ## Credits
 
-- [Andrés Santibáñez](https://github.com/asantibanez)
+- [Andres Santibanez](https://github.com/asantibanez) (original author)
 - [All Contributors](../../contributors)
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+MIT. See [LICENSE.md](LICENSE.md).
