@@ -18,49 +18,16 @@ class LivewireCalendarServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views' => $this->app->resourcePath('views/vendor/livewire-calendar'),
             ], 'livewire-calendar');
+
+            $this->publishes([
+                __DIR__.'/../resources/js' => public_path('vendor/livewire-calendar'),
+            ], 'livewire-calendar-assets');
         }
 
         Blade::directive('livewireCalendarScripts', function () {
-            return <<<'HTML'
-            <script>
-                function onLivewireCalendarEventDragStart(event, eventId) {
-                    event.dataTransfer.setData('id', eventId);
-                }
+            $js = file_get_contents(__DIR__.'/../resources/js/calendar.js');
 
-                function onLivewireCalendarEventDragEnter(event, componentId, dateString, dragAndDropClasses) {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className + ` ${dragAndDropClasses} `;
-                }
-
-                function onLivewireCalendarEventDragLeave(event, componentId, dateString, dragAndDropClasses) {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className.replace(dragAndDropClasses, '');
-                }
-
-                function onLivewireCalendarEventDragOver(event) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-
-                function onLivewireCalendarEventDrop(event, componentId, dateString, year, month, day, dragAndDropClasses) {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    let element = document.getElementById(`${componentId}-${dateString}`);
-                    element.className = element.className.replace(dragAndDropClasses, '');
-
-                    const eventId = event.dataTransfer.getData('id');
-
-                    window.Livewire.find(componentId).call('onEventDropped', eventId, year, month, day);
-                }
-            </script>
-HTML;
+            return "<script>{$js}</script>";
         });
     }
 }
