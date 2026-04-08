@@ -9,62 +9,33 @@ use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Component;
 
-/**
- * Class LivewireCalendar
- * @package Asantibanez\LivewireCalendar
- * @property Carbon $startsAt
- * @property Carbon $endsAt
- * @property Carbon $gridStartsAt
- * @property Carbon $gridEndsAt
- * @property int $weekStartsAt
- * @property int $weekEndsAt
- * @property string $calendarView
- * @property string $dayView
- * @property string $eventView
- * @property string $dayOfWeekView
- * @property string $beforeCalendarWeekView
- * @property string $afterCalendarWeekView
- * @property string $dragAndDropClasses
- * @property int $pollMillis
- * @property string $pollAction
- * @property boolean $dragAndDropEnabled
- * @property boolean $dayClickEnabled
- * @property boolean $eventClickEnabled
- */
 class LivewireCalendar extends Component
 {
-    public $startsAt;
-    public $endsAt;
+    public Carbon $startsAt;
+    public Carbon $endsAt;
 
-    public $gridStartsAt;
-    public $gridEndsAt;
+    public Carbon $gridStartsAt;
+    public Carbon $gridEndsAt;
 
-    public $weekStartsAt;
-    public $weekEndsAt;
+    public int $weekStartsAt;
+    public int $weekEndsAt;
 
-    public $calendarView;
-    public $dayView;
-    public $eventView;
-    public $dayOfWeekView;
+    public string $calendarView;
+    public string $dayView;
+    public string $eventView;
+    public string $dayOfWeekView;
 
-    public $dragAndDropClasses;
+    public string $dragAndDropClasses;
 
-    public $beforeCalendarView;
-    public $afterCalendarView;
+    public ?string $beforeCalendarView;
+    public ?string $afterCalendarView;
 
-    public $pollMillis;
-    public $pollAction;
+    public ?int $pollMillis;
+    public ?string $pollAction;
 
-    public $dragAndDropEnabled;
-    public $dayClickEnabled;
-    public $eventClickEnabled;
-
-    protected $casts = [
-        'startsAt' => 'date',
-        'endsAt' => 'date',
-        'gridStartsAt' => 'date',
-        'gridEndsAt' => 'date',
-    ];
+    public bool $dragAndDropEnabled;
+    public bool $dayClickEnabled;
+    public bool $eventClickEnabled;
 
     public function mount($initialYear = null,
                           $initialMonth = null,
