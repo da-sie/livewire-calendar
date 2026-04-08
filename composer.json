@@ -1,28 +1,30 @@
 {
-    "name": "asantibanez/livewire-calendar",
+    "name": "da-sie/livewire-calendar",
     "description": "Laravel Livewire calendar component",
     "keywords": [
-        "asantibanez",
-        "livewire-calendar"
+        "da-sie",
+        "livewire-calendar",
+        "livewire",
+        "calendar"
     ],
-    "homepage": "https://github.com/asantibanez/livewire-calendar",
+    "homepage": "https://github.com/da-sie/livewire-calendar",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
             "name": "Andrés Santibáñez",
             "email": "santibanez.andres@gmail.com",
-            "role": "Developer"
+            "role": "Original Author"
         }
     ],
     "require": {
-        "php": "^7.2|^8.0|^8.1|^8.2|^8.3",
-        "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-        "livewire/livewire": "^3.0"
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "livewire/livewire": "^4.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^5.0|^6.0|^7.0|^8.0|^9.0",
-        "phpunit/phpunit": "^8.0|^9.0|^10.0"
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^10.0|^11.0|^12.0|^13.0"
     },
     "autoload": {
         "psr-4": {
@@ -37,7 +39,6 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
     },
     "config": {
         "sort-packages": true
@@ -46,10 +47,7 @@
         "laravel": {
             "providers": [
                 "Asantibanez\\LivewireCalendar\\LivewireCalendarServiceProvider"
-            ],
-            "aliases": {
-                "LivewireCalendar": "Asantibanez\\LivewireCalendar\\LivewireCalendarFacade"
-            }
+            ]
         }
     }
 }

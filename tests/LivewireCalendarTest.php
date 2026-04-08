@@ -3,14 +3,13 @@
 namespace Asantibanez\LivewireCalendar\Tests;
 
 use Asantibanez\LivewireCalendar\LivewireCalendar;
-use Livewire\LivewireManager;
-use Livewire\Testing\TestableLivewire;
+use Livewire\Livewire;
 
 class LivewireCalendarTest extends TestCase
 {
-    private function createComponent($parameters = []) : TestableLivewire
+    private function createComponent(array $parameters = [])
     {
-        return app(LivewireManager::class)->test(LivewireCalendar::class, $parameters);
+        return Livewire::test(LivewireCalendar::class, $parameters);
     }
 
     /** @test */
@@ -32,7 +31,7 @@ class LivewireCalendarTest extends TestCase
         $component = $this->createComponent([]);
 
         //Act
-        $component->runAction('goToNextMonth');
+        $component->call('goToNextMonth');
 
         //Assert
         $this->assertEquals(
@@ -53,7 +52,7 @@ class LivewireCalendarTest extends TestCase
         $component = $this->createComponent([]);
 
         //Act
-        $component->runAction('goToPreviousMonth');
+        $component->call('goToPreviousMonth');
 
         //Assert
         $this->assertEquals(
@@ -73,12 +72,12 @@ class LivewireCalendarTest extends TestCase
         //Arrange
         $component = $this->createComponent([]);
 
-        $component->runAction('goToPreviousMonth');
-        $component->runAction('goToPreviousMonth');
-        $component->runAction('goToPreviousMonth');
+        $component->call('goToPreviousMonth');
+        $component->call('goToPreviousMonth');
+        $component->call('goToPreviousMonth');
 
         //Act
-        $component->runAction('goToCurrentMonth');
+        $component->call('goToCurrentMonth');
 
         //Assert
         $this->assertEquals(
