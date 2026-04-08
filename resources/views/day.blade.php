@@ -12,8 +12,8 @@
         x-on:dragover.prevent
         x-on:drop="onDrop"
     @endif
-    class="flex-1 h-40 lg:h-48 border border-gray-200 -mt-px -ml-px"
-    style="min-width: 10rem;">
+    class="flex-1 {{ ($viewMode ?? 'month') === 'day' ? 'min-w-full h-auto min-h-[24rem]' : 'h-40 lg:h-48' }} border border-gray-200 -mt-px -ml-px"
+    style="{{ ($viewMode ?? 'month') !== 'day' ? 'min-width: 10rem;' : '' }}">
 
     <div
         class="w-full h-full"

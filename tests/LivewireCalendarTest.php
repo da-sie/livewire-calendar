@@ -134,4 +134,76 @@ class LivewireCalendarTest extends TestCase
         $this->assertCount(1, $calendar->getEventsForDay(Carbon::parse('2026-04-08'), $events));
         $this->assertCount(0, $calendar->getEventsForDay(Carbon::parse('2026-04-09'), $events));
     }
+
+    #[Test]
+    public function week_grid_returns_one_week_of_seven_days()
+    {
+        $calendar = new LivewireCalendar();
+        $calendar->mount(initialYear: 2026, initialMonth: 4);
+        $calendar->viewMode = 'week';
+
+        $grid = $calendar->grid();
+        $this->assertCount(1, $grid);
+        $this->assertCount(7, $grid->first());
+    }
+
+    #[Test]
+    public function day_grid_returns_one_day()
+    {
+        $calendar = new LivewireCalendar();
+        $calendar->mount(initialYear: 2026, initialMonth: 4);
+        $calendar->viewMode = 'day';
+
+        $grid = $calendar->grid();
+        $this->assertCount(1, $grid);
+        $this->assertCount(1, $grid->first());
+    }
+
+    #[Test]
+    public function can_navigate_weeks()
+    {
+        $component = $this->createComponent([]);
+        $component->set('viewMode', 'week');
+
+        // After setting week mode, startsAt aligns to week start
+        $weekStart = today()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
+
+        $component->call('goToNextWeek');
+
+        $this->assertEquals(
+            $weekStart->addWeek(),
+            $component->get('startsAt')
+        );
+    }
+
+    #[Test]
+    public function can_navigate_days()
+    {
+        $component = $this->createComponent([]);
+        $component->set('viewMode', 'day');
+
+        $startBefore = today()->startOfMonth();
+
+        $component->call('goToNextDay');
+
+        $this->assertEquals(
+            $startBefore->addDay(),
+            $component->get('startsAt')
+        );
+    }
+
+    #[Test]
+    public function can_switch_view_mode()
+    {
+        $component = $this->createComponent([]);
+
+        $component->call('setViewMode', 'week');
+        $this->assertEquals('week', $component->get('viewMode'));
+
+        $component->call('setViewMode', 'day');
+        $this->assertEquals('day', $component->get('viewMode'));
+
+        $component->call('setViewMode', 'month');
+        $this->assertEquals('month', $component->get('viewMode'));
+    }
 }

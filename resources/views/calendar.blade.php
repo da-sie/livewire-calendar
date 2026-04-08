@@ -13,21 +13,24 @@
         <div class="overflow-x-auto w-full">
             <div class="inline-block min-w-full overflow-hidden">
 
-                <div class="w-full flex flex-row">
-                    @foreach($monthGrid->first() as $day)
-                        @include($dayOfWeekView, ['day' => $day])
-                    @endforeach
-                </div>
+                @if($viewMode !== 'day')
+                    <div class="w-full flex flex-row">
+                        @foreach($grid->first() as $day)
+                            @include($dayOfWeekView, ['day' => $day])
+                        @endforeach
+                    </div>
+                @endif
 
-                @foreach($monthGrid as $week)
+                @foreach($grid as $week)
                     <div class="w-full flex flex-row">
                         @foreach($week as $day)
                             @include($dayView, [
                                     'componentId' => $componentId,
                                     'day' => $day,
-                                    'dayInMonth' => $day->isSameMonth($startsAt),
+                                    'dayInMonth' => $viewMode !== 'month' || $day->isSameMonth($startsAt),
                                     'isToday' => $day->isToday(),
                                     'events' => $getEventsForDay($day, $events),
+                                    'viewMode' => $viewMode,
                                 ])
                         @endforeach
                     </div>

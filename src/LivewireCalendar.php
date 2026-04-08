@@ -37,6 +37,8 @@ class LivewireCalendar extends Component
     public bool $dayClickEnabled;
     public bool $eventClickEnabled;
 
+    public string $viewMode = 'month';
+
     public function mount($initialYear = null,
                           $initialMonth = null,
                           $weekStartsAt = null,
@@ -77,6 +79,8 @@ class LivewireCalendar extends Component
 
         $this->dayClickEnabled = $dayClickEnabled;
         $this->eventClickEnabled = $eventClickEnabled;
+
+        $this->recalculateBounds();
 
         $this->afterMount($extras);
     }
@@ -132,10 +136,106 @@ class LivewireCalendar extends Component
         $this->calculateGridStartsEnds();
     }
 
+    public function goToPreviousWeek()
+    {
+        $this->startsAt->subWeek();
+        $this->endsAt = $this->startsAt->clone()->endOfWeek($this->weekEndsAt)->startOfDay();
+        $this->calculateGridStartsEnds();
+    }
+
+    public function goToNextWeek()
+    {
+        $this->startsAt->addWeek();
+        $this->endsAt = $this->startsAt->clone()->endOfWeek($this->weekEndsAt)->startOfDay();
+        $this->calculateGridStartsEnds();
+    }
+
+    public function goToPreviousDay()
+    {
+        $this->startsAt->subDay();
+        $this->endsAt = $this->startsAt->clone();
+        $this->gridStartsAt = $this->startsAt->clone();
+        $this->gridEndsAt = $this->endsAt->clone();
+    }
+
+    public function goToNextDay()
+    {
+        $this->startsAt->addDay();
+        $this->endsAt = $this->startsAt->clone();
+        $this->gridStartsAt = $this->startsAt->clone();
+        $this->gridEndsAt = $this->endsAt->clone();
+    }
+
+    public function setViewMode(string $mode)
+    {
+        $this->viewMode = $mode;
+        $this->recalculateBounds();
+    }
+
+    public function updatedViewMode()
+    {
+        $this->recalculateBounds();
+    }
+
+    private function recalculateBounds()
+    {
+        match ($this->viewMode) {
+            'week' => $this->recalculateWeek(),
+            'day' => $this->recalculateDay(),
+            default => $this->recalculateMonth(),
+        };
+    }
+
+    private function recalculateMonth()
+    {
+        $this->startsAt = $this->startsAt->clone()->startOfMonth()->startOfDay();
+        $this->endsAt = $this->startsAt->clone()->endOfMonth()->startOfDay();
+        $this->calculateGridStartsEnds();
+    }
+
+    private function recalculateWeek()
+    {
+        $this->startsAt = $this->startsAt->clone()->startOfWeek($this->weekStartsAt)->startOfDay();
+        $this->endsAt = $this->startsAt->clone()->endOfWeek($this->weekEndsAt)->startOfDay();
+        $this->calculateGridStartsEnds();
+    }
+
+    private function recalculateDay()
+    {
+        $this->endsAt = $this->startsAt->clone();
+        $this->gridStartsAt = $this->startsAt->clone();
+        $this->gridEndsAt = $this->endsAt->clone();
+    }
+
     public function calculateGridStartsEnds()
     {
         $this->gridStartsAt = $this->startsAt->clone()->startOfWeek($this->weekStartsAt);
         $this->gridEndsAt = $this->endsAt->clone()->endOfWeek($this->weekEndsAt);
+    }
+
+    public function grid(): Collection
+    {
+        return match ($this->viewMode) {
+            'week' => $this->weekGrid(),
+            'day' => $this->dayGrid(),
+            default => $this->monthGrid(),
+        };
+    }
+
+    public function weekGrid(): Collection
+    {
+        $start = $this->startsAt->clone()->startOfWeek($this->weekStartsAt);
+        $days = collect();
+        for ($i = 0; $i < 7; $i++) {
+            $days->push($start->clone()->addDays($i));
+        }
+
+        return collect([$days]);
+    }
+
+    public function dayGrid(): Collection
+    {
+        return collect([collect([$this->startsAt->clone()])]);
     }
 
     /**
@@ -213,8 +313,10 @@ class LivewireCalendar extends Component
         return view($this->calendarView)
             ->with([
                 'componentId' => $this->getId(),
-                'monthGrid' => $this->monthGrid(),
+                'grid' => $this->grid(),
+                'monthGrid' => $this->grid(),
                 'events' => $events,
+                'viewMode' => $this->viewMode,
                 'getEventsForDay' => function ($day) use ($events) {
                     return $this->getEventsForDay($day, $events);
                 }
