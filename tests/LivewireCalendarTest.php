@@ -193,6 +193,14 @@ class LivewireCalendarTest extends TestCase
     }
 
     #[Test]
+    public function on_event_dropped_keeps_original_signature()
+    {
+        $component = $this->createComponent([]);
+        $component->call('onEventDropped', '1', 2026, 4, 15);
+        $this->assertTrue(true);
+    }
+
+    #[Test]
     public function can_switch_view_mode()
     {
         $component = $this->createComponent([]);

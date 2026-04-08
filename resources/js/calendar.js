@@ -17,6 +17,15 @@ function livewireCalendarRegisterAlpine() {
             this.dragOver = false;
             const eventId = e.dataTransfer.getData('id');
             this.$wire.onEventDropped(eventId, config.year, config.month, config.day);
+            this.$wire.dispatchSelf('calendar-event-dropped', {
+                eventId,
+                targetYear: config.year,
+                targetMonth: config.month,
+                targetDay: config.day,
+                sourceYear: parseInt(e.dataTransfer.getData('sourceYear')),
+                sourceMonth: parseInt(e.dataTransfer.getData('sourceMonth')),
+                sourceDay: parseInt(e.dataTransfer.getData('sourceDay')),
+            });
         },
 
         onKeydown(e) {

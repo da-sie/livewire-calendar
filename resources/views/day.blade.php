@@ -70,7 +70,12 @@
                         <div
                             @if($dragAndDropEnabled)
                                 draggable="true"
-                                x-on:dragstart="$event.dataTransfer.setData('id', '{{ $event['id'] }}')"
+                                x-on:dragstart="
+                                $event.dataTransfer.setData('id', '{{ $event['id'] }}');
+                                $event.dataTransfer.setData('sourceYear', '{{ $day->year }}');
+                                $event.dataTransfer.setData('sourceMonth', '{{ $day->month }}');
+                                $event.dataTransfer.setData('sourceDay', '{{ $day->day }}');
+                            "
                             @endif
                         >
                             @include($eventView, [
