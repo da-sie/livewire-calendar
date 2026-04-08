@@ -1,6 +1,6 @@
 {
     "name": "da-sie/livewire-calendar",
-    "description": "Laravel Livewire calendar component",
+    "description": "Laravel Livewire calendar component with month/week/day views, drag-and-drop, multi-day events, and accessibility",
     "keywords": [
         "da-sie",
         "livewire-calendar",
