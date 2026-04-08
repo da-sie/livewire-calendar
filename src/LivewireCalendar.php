@@ -178,7 +178,12 @@ class LivewireCalendar extends Component
     {
         return $events
             ->filter(function ($event) use ($day) {
-                return Carbon::parse($event['date'])->isSameDay($day);
+                $start = Carbon::parse($event['date'])->startOfDay();
+                $end = isset($event['date_end'])
+                    ? Carbon::parse($event['date_end'])->startOfDay()
+                    : $start;
+
+                return $day->between($start, $end);
             });
     }
 

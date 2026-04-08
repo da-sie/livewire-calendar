@@ -3,7 +3,9 @@
 namespace Asantibanez\LivewireCalendar\Tests;
 
 use Asantibanez\LivewireCalendar\LivewireCalendar;
+use Carbon\Carbon;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 
 class LivewireCalendarTest extends TestCase
 {
@@ -12,7 +14,7 @@ class LivewireCalendarTest extends TestCase
         return Livewire::test(LivewireCalendar::class, $parameters);
     }
 
-    /** @test */
+    #[Test]
     public function can_build_component()
     {
         //Arrange
@@ -24,7 +26,7 @@ class LivewireCalendarTest extends TestCase
         $this->assertNotNull($component);
     }
 
-    /** @test */
+    #[Test]
     public function can_navigate_to_next_month()
     {
         //Arrange
@@ -45,7 +47,7 @@ class LivewireCalendarTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function can_navigate_to_previous_month()
     {
         //Arrange
@@ -66,7 +68,7 @@ class LivewireCalendarTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function can_navigate_to_current_month()
     {
         //Arrange
@@ -89,5 +91,47 @@ class LivewireCalendarTest extends TestCase
             today()->endOfMonth()->startOfDay(),
             $component->get('endsAt')
         );
+    }
+
+    #[Test]
+    public function single_day_event_appears_on_its_day()
+    {
+        $calendar = new LivewireCalendar();
+        $events = collect([
+            ['id' => 1, 'title' => 'Test', 'date' => '2026-04-08'],
+        ]);
+
+        $result = $calendar->getEventsForDay(Carbon::parse('2026-04-08'), $events);
+        $this->assertCount(1, $result);
+
+        $result = $calendar->getEventsForDay(Carbon::parse('2026-04-09'), $events);
+        $this->assertCount(0, $result);
+    }
+
+    #[Test]
+    public function multi_day_event_appears_on_all_days_in_range()
+    {
+        $calendar = new LivewireCalendar();
+        $events = collect([
+            ['id' => 1, 'title' => 'Conference', 'date' => '2026-04-08', 'date_end' => '2026-04-10'],
+        ]);
+
+        $this->assertCount(1, $calendar->getEventsForDay(Carbon::parse('2026-04-08'), $events));
+        $this->assertCount(1, $calendar->getEventsForDay(Carbon::parse('2026-04-09'), $events));
+        $this->assertCount(1, $calendar->getEventsForDay(Carbon::parse('2026-04-10'), $events));
+        $this->assertCount(0, $calendar->getEventsForDay(Carbon::parse('2026-04-07'), $events));
+        $this->assertCount(0, $calendar->getEventsForDay(Carbon::parse('2026-04-11'), $events));
+    }
+
+    #[Test]
+    public function event_without_date_end_behaves_as_single_day()
+    {
+        $calendar = new LivewireCalendar();
+        $events = collect([
+            ['id' => 1, 'title' => 'Quick', 'date' => '2026-04-08'],
+        ]);
+
+        $this->assertCount(1, $calendar->getEventsForDay(Carbon::parse('2026-04-08'), $events));
+        $this->assertCount(0, $calendar->getEventsForDay(Carbon::parse('2026-04-09'), $events));
     }
 }

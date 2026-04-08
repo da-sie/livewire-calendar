@@ -52,6 +52,8 @@
                         >
                             @include($eventView, [
                                 'event' => $event,
+                                'isStart' => \Carbon\Carbon::parse($event['date'])->isSameDay($day),
+                                'isEnd' => \Carbon\Carbon::parse($event['date_end'] ?? $event['date'])->isSameDay($day),
                             ])
                         </div>
                     @endforeach
